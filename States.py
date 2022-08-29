@@ -1,122 +1,70 @@
-import random
-import numpy as np
+import copy
 
 
-def dead_state(width, height):
-    return np.zeros((width, height))
+class Cells:
+    def __init__(self):
+        self.ALIVE = '#'
+        self.DEAD = '-'
+        self.cells = {}
+        self.nextCells = {}
 
+    def renderCells(self, width, height, definedCells):
 
-def random_state(width, height):
-    state = np.random.random((height, width))
-    for i in range(0, state_width(state)):
-        for j in range(0, state_width(state)):
+        self.nextCells = {}
+        for x in range(width):  # Loop over every possible column.
+            for y in range(height):  # Loop over every possible row.
+                # 50/50 chance for starting cells being alive or dead.
+                self.nextCells[(x, y)] = definedCells[x][y]
+                if self.nextCells[(x, y)] == 1:
+                    self.nextCells[(x, y)] = self.ALIVE  # Add a living cell.
+                else:
+                    self.nextCells[(x, y)] = self.DEAD  # Add a dead cell.
 
-            random_number = random.random()
-            if state[i][j] <= 0.5:  # experiment with this value to increase or decrease life/death states
-                cell_state = 1
-            else:
-                cell_state = 0
-            state[i][j] = cell_state
+        self.cells = copy.deepcopy(self.nextCells)
+        for x in range(width):
+            for y in range(height):
+                print(self.cells[(x, y)], end='')  # Print the # or space.
+            print()  # Print a newline at the end of the row.
 
-    return state
+    def nextstate(self, width, height):
+        for x in range(width):
+            for y in range(height):
+                # Get the neighboring coordinates of (x, y), even if they
+                # wrap around the edge:
+                left = (x - 1) % width
+                right = (x + 1) % width
+                above = (y - 1) % height
+                below = (y + 1) % height
 
+                # Count the number of living neighbors:
+                numNeighbors = 0
+                if self.cells[(left, above)] == self.ALIVE:
+                    numNeighbors += 1  # Top-left neighbor is alive.
+                if self.cells[(x, above)] == self.ALIVE:
+                    numNeighbors += 1  # Top neighbor is alive.
+                if self.cells[(right, above)] == self.ALIVE:
+                    numNeighbors += 1  # Top-right neighbor is alive.
+                if self.cells[(left, y)] == self.ALIVE:
+                    numNeighbors += 1  # Left neighbor is alive.
+                if self.cells[(right, y)] == self.ALIVE:
+                    numNeighbors += 1  # Right neighbor is alive.
+                if self.cells[(left, below)] == self.ALIVE:
+                    numNeighbors += 1  # Bottom-left neighbor is alive.
+                if self.cells[(x, below)] == self.ALIVE:
+                    numNeighbors += 1  # Bottom neighbor is alive.
+                if self.cells[(right, below)] == self.ALIVE:
+                    numNeighbors += 1  # Bottom-right neighbor is alive.
 
-def state_width(state):
-    """Get the width of a state.
-    Parameters
-    ----------
-    state: a Game state
-    Returns
-    -------
-    The width of the input state
-    """
+                # Set cell based on Conway's Game of Life rules:
+                if self.cells[(x, y)] == self.ALIVE and (numNeighbors == 2
+                                               or numNeighbors == 3):
+                    # Living cells with 2 or 3 neighbors stay alive:
+                    self.nextCells[(x, y)] = self.ALIVE
+                elif self.cells[(x, y)] == self.DEAD and numNeighbors == 3:
+                    # Dead cells with 3 neighbors become alive:
+                    self.nextCells[(x, y)] = self.ALIVE
+                else:
+                    # Everything else dies or stays dead:
+                    self.nextCells[(x, y)] = self.DEAD
 
-    # print(len(state))
-    return len(state)
-
-
-def state_height(state):
-    """Get the height of a state.
-    Parameters
-    ----------
-    state: a Game state
-    Returns
-    -------
-    The height of the input state
-    """
-    # print(len(state[0]))
-    return len(state[0])
-
-
-def next_board_state(state):
-    new_state = state
-    # print(state, new_state)
-
-    neighbours = [0, 0, 0, 0]
-    # Any live cell with 0 or 1 live neighbors becomes dead, because of underpopulation
-    # print((range(0, state_width(state))), (range(0, state_height(state))))
-    for i in range(0, state_width(state)):  # range(0, state_width(state))
-        for j in range(0, state_height(state)):  # range(0, state_height(state))
-            print(state, new_state)
-            if i - 1 > -1:
-                neighbours[0] = state[i - 1][j]
-            # print(state)
-            # print("if i-1 j", i-1, j, state[i-1][j])
-            else:
-                neighbours[0] = 0
-            if j - 1 > -1:
-                neighbours[3] = state[i][j - 1]
-                # print("if i j-1")
-
-            else:
-                neighbours[3] = 0
-
-            try:
-                neighbours[1] = state[i + 1][j]
-                # print("if i+1 j")
-
-            except:
-                neighbours[1] = 0
-            else:
-                neighbours[1] = state[i + 1][j]
-
-            try:
-                neighbours[2] = state[i][j + 1]
-                # print("if i j+1")
-
-            except:
-                neighbours[2] = 0
-            else:
-                neighbours[2] = state[i][j + 1]
-
-            neighbour_match = np.sum(neighbours, dtype=np.int32)
-
-            # print(i, j, neighbour_match, neighbours, state[i][j], state[i][j])
-            match neighbour_match:
-                case 0:
-                    new_state[i][j] = 0
-                case 1:
-                    new_state[i][j] = 0
-                case 2:
-                    if state[i][j] == 0:
-                        new_state[i][j] = 0
-
-                case 3:  # if there are 3 neighbours
-                    new_state[i][j] = 1
-                case 4:
-                    new_state[i][j] = 0
-                case other:
-                    print("Unexpected value: ")
-                    print(neighbour_match)
-    return new_state
-
-    # Any live cell with 2 or 3 live neighbors stays alive, because its neighborhood is just right
-    # Any live cell with more than 3 live neighbors becomes dead, because of overpopulation
-    # Any dead cell with exactly 3 live neighbors becomes alive, by reproduction
-
-
-def simple_iteration(state):
-    for i in enumerate(state):
-        for j in range(len(i)):
-            element = state[i][j]
-            print(element)
+        print(self.nextCells)

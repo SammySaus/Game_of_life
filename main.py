@@ -1,13 +1,15 @@
 import States
 import Views
 
-
 width = 3
 height = 3
 
 # print(States.random_state(width, height))
-temp_state = States.random_state(width, height)
-print(temp_state)
-Views.render(temp_state)
-temp_state=States.next_board_state(temp_state)
-Views.render(temp_state)
+start_state = [[0, 0, 1],
+              [0, 1, 1],
+              [0, 0, 0]]
+conway = States.Cells()
+States.Cells.renderCells(conway, width, height, start_state)
+States.Cells.nextstate(conway, width, height)
+
+
