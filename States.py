@@ -1,4 +1,5 @@
 import copy
+import tkinter as tk
 
 
 class Cells:
@@ -9,8 +10,12 @@ class Cells:
         self.nextCells = {}
         self.tempCells = {}
         self.statenumber = 0
+        self.width = 0
+        self.height = 0
 
     def renderCells(self, width, height, definedCells=None):
+        self.width = width
+        self.height = height
         self.statenumber += 1
         print("State: " + str(self.statenumber))
         if definedCells is None:
@@ -28,20 +33,20 @@ class Cells:
                         self.tempCells[(x, y)] = self.DEAD  # Add a dead cell.
 
             self.cells = copy.deepcopy(self.tempCells)
-        for x in range(width):
-            for y in range(height):
-                print(self.cells[(x, y)], end='')  # Print the # or space.
-            print()  # Print a newline at the end of the row.
+        # for x in range(width):
+        #     for y in range(height):
+        #         print(self.cells[(x, y)], end='')  # Print the # or space.
+        #     print()  # Print a newline at the end of the row.
 
-    def nextstate(self, width, height):
-        for y in range(height):
-            for x in range(width):
+    def nextstate(self):
+        for y in range(self.height):
+            for x in range(self.width):
                 # Get the neighbouring coordinates of (x, y), even if they
                 # wrap around the edge:
-                left = (x - 1) % width
-                right = (x + 1) % width
-                above = (y - 1) % height
-                below = (y + 1) % height
+                left = (x - 1) % self.width
+                right = (x + 1) % self.width
+                above = (y - 1) % self.height
+                below = (y + 1) % self.height
 
                 # Count the number of living neighbours:
                 numNeighbours = 0
@@ -75,3 +80,33 @@ class Cells:
                     self.nextCells[(x, y)] = self.DEAD
 
         # print(self.nextCells)
+
+    def windowdisp(self):
+
+        window = tk.Tk()
+
+        def update():
+            Cells.nextstate(self)
+            Cells.renderCells(self, self.width, self.height)
+            for x in range(self.width):
+                window.grid_columnconfigure(x, minsize=20)
+
+                for y in range(self.height):
+                    window.grid_rowconfigure(y, minsize=20)
+                    frame = tk.Frame(
+                        master=window,
+                        borderwidth=1
+                    )
+                    frame.grid(row=x, column=y)
+                    label = tk.Label(master=frame, text=self.cells[(x, y)])
+                    label.pack()
+
+            window.after(100, update)  # run itself again after 1000 ms
+
+        update()
+        window.mainloop()
+
+    def main(self, width, height, start_state):
+        Cells.renderCells(self, width, height, start_state)
+
+        Cells.windowdisp(self)
