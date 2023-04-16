@@ -1,5 +1,6 @@
 import copy
 import tkinter as tk
+import numpy as np
 
 
 class Cells:
@@ -38,7 +39,40 @@ class Cells:
         #         print(self.cells[(x, y)], end='')  # Print the # or space.
         #     print()  # Print a newline at the end of the row.
 
+    def windowdisp(self):
+        # Create the window, grid and labels
+        window = tk.Tk()
+        labels = [[None for y in range(self.height)] for x in range(self.width)]
+        for x in range(self.width):
+            window.grid_columnconfigure(x, minsize=20)
+            for y in range(self.height):
+                window.grid_rowconfigure(y, minsize=20)
+                frame = tk.Frame(master=window, borderwidth=1)
+                frame.grid(row=x, column=y)
+                label = tk.Label(master=frame, text=self.cells[(x, y)])
+                label.pack()
+                labels[x][y] = label
+
+        # Define the update function
+        def update():
+            Cells.nextstate(self)
+            Cells.renderCells(self, self.width, self.height)
+            for x in range(self.width):
+                for y in range(self.height):
+                    labels[x][y].configure(text=self.cells[(x, y)])
+            window.after(100, update)
+
+        update()
+        window.mainloop()
+
+    def main(self, width, height, start_state):
+        Cells.renderCells(self, width, height, start_state)
+
+        Cells.windowdisp(self)
+
+
     def nextstate(self):
+
         for y in range(self.height):
             for x in range(self.width):
                 # Get the neighbouring coordinates of (x, y), even if they
@@ -80,33 +114,3 @@ class Cells:
                     self.nextCells[(x, y)] = self.DEAD
 
         # print(self.nextCells)
-
-    def windowdisp(self):
-
-        window = tk.Tk()
-
-        def update():
-            Cells.nextstate(self)
-            Cells.renderCells(self, self.width, self.height)
-            for x in range(self.width):
-                window.grid_columnconfigure(x, minsize=20)
-
-                for y in range(self.height):
-                    window.grid_rowconfigure(y, minsize=20)
-                    frame = tk.Frame(
-                        master=window,
-                        borderwidth=1
-                    )
-                    frame.grid(row=x, column=y)
-                    label = tk.Label(master=frame, text=self.cells[(x, y)])
-                    label.pack()
-
-            window.after(100, update)  # run itself again after 1000 ms
-
-        update()
-        window.mainloop()
-
-    def main(self, width, height, start_state):
-        Cells.renderCells(self, width, height, start_state)
-
-        Cells.windowdisp(self)
